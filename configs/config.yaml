@@ -1,0 +1,9 @@
+redis:
+  addr: 127.0.0.1:6379
+  pwd:  
+  db: 0
+  size: 5
+  timeout: 15
+kimi:
+  apiKey: sk-MyQJaP6HFPl50uk8d976frV9bNKHrsUAbFLq4C0RBVEMFiD6
+  baseUrl: https://api.moonshot.cn
