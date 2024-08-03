@@ -5,5 +5,5 @@ redis:
   size: 5
   timeout: 15
 kimi:
-  apiKey: sk-MyQJaP6HFPl50uk8d976frV9bNKHrsUAbFLq4C0RBVEMFiD6
+  apiKey: 
   baseUrl: https://api.moonshot.cn
