@@ -18,9 +18,9 @@ var (
 
 func init() {
 	// 记载配置文件
-	application.LoadConfig("/Users/zhr/myself/wechat-bot-go/configs", "config", &Conf)
+	application.LoadConfig("../configs", "config-dev", &Conf)
 	// 初始化 logger
-	logger.InitLogger(Conf.LogPath)
+	Log = logger.InitLogger(Conf.LogPath)
 	// 初始化redis
-	db.InitRedis(&Conf.Redis)
+	Rdb = db.InitRedis(&Conf.Redis)
 }

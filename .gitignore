@@ -1,3 +1,4 @@
 .vscode
 storage.json
 *-dev.yaml
+*.logs
