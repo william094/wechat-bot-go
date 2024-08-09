@@ -1,6 +1,7 @@
 package message
 
 import (
+	"strings"
 	"wehcat-bot-go/internal/ai"
 	"wehcat-bot-go/internal/ai/kimi"
 	"wehcat-bot-go/internal/config"
@@ -19,13 +20,12 @@ func NewPrivateMsgHandler(conf *config.Config, log *zap.Logger) *PrivateMsgHandl
 	return &PrivateMsgHandler{conf: conf, log: log}
 }
 
-// handle 处理消息
-func (p *PrivateMsgHandler) Handle(msg *openwechat.Message) error {
-	return p.ReceiveHandler(msg)
-}
-
 func (p *PrivateMsgHandler) ReceiveHandler(msg *openwechat.Message) error {
+	p.log.Sugar().Info("消息类型：", msg.MsgType, msg.SubMsgType)
 	if msg.IsText() {
+		if strings.Contains(msg.Content, "天气") {
+
+		}
 		return p.ReplyHandler(msg)
 	}
 	msg.ReplyText("很抱歉，我还在学习，暂不支持该消息")
