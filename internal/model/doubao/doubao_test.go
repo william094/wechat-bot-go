@@ -33,13 +33,13 @@ func TestDoubao_TextHandler(t *testing.T) {
 		{
 			name: "success",
 			fields: fields{
-				ApiKey: "762bd9d3-3f55-4d3d-a931-1891b1a7a419",
-				BotId:  "bot-20240829154002-ggsnc",
+				ApiKey: "",
+				BotId:  "",
 			},
 			args: args{
 				ctx: context.Background(),
 				msgs: []model.Message{
-					{Role: doubao.ChatMessageRoleUser, Content: "宜都最近七天天气怎么样"},
+					{Role: doubao.ChatMessageRoleUser, Content: "上海最近七天天气怎么样"},
 				},
 			},
 		},
