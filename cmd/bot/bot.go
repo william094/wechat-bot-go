@@ -1,4 +1,4 @@
-package core
+package bot
 
 import (
 	"wehcat-bot-go/internal/app"

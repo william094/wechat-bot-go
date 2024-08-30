@@ -23,4 +23,5 @@ func init() {
 	Log = logger.InitLogger(Conf.LogPath)
 	// 初始化redis
 	Rdb = db.InitRedis(&Conf.Redis)
+	Log.Sugar().Info("init success")
 }

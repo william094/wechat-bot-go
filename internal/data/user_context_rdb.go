@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"wehcat-bot-go/internal/ai"
 	"wehcat-bot-go/internal/app"
+	ai "wehcat-bot-go/internal/model"
 )
 
 func getUserContextKey(uid string) string {

@@ -3,7 +3,7 @@ package kimi
 import (
 	"context"
 	"testing"
-	"wehcat-bot-go/internal/ai"
+	"wehcat-bot-go/internal/model"
 )
 
 func TestKimi_TextHandler(t *testing.T) {
@@ -13,19 +13,19 @@ func TestKimi_TextHandler(t *testing.T) {
 	}
 	type args struct {
 		ctx  context.Context
-		msgs []ai.Message
+		msgs []model.Message
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		wantMsg ai.Message
+		wantMsg model.Message
 		wantErr bool
 	}{
 		{
 			name:   "success",
-			fields: fields{ApiKey: "sk-MyQJaP6HFPl50uk8d976frV9bNKHrsUAbFLq4C0RBVEMFiD6", BaseUrl: "https://api.moonshot.cn"},
-			args: args{ctx: context.Background(), msgs: []ai.Message{
+			fields: fields{ApiKey: "", BaseUrl: "https://api.moonshot.cn"},
+			args: args{ctx: context.Background(), msgs: []model.Message{
 				//{Role: "system", Content: "你是 Kimi，由 Moonshot AI 提供的人工智能助手，你更擅长中文和英文的对话。你会为用户提供安全，有帮助，准确的回答。同时，你会拒绝一切涉及恐怖主义，种族歧视，黄色暴力等问题的回答。Moonshot AI 为专有名词，不可翻译成其他语言。"},
 				{Role: "user", Content: "2024奥运会中国获奖情况"},
 			}},
@@ -57,7 +57,7 @@ func TestKimi_ToolCallHandler(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		wantMsg ai.Message
+		wantMsg model.Message
 		wantErr bool
 	}{
 		{

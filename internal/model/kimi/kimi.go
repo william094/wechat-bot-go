@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"wehcat-bot-go/internal/ai"
+	ai "wehcat-bot-go/internal/model"
 
 	"github.com/go-resty/resty/v2"
 )
@@ -124,6 +124,10 @@ func (k *Kimi) ToolCalls(ctx context.Context, msgs []map[string]interface{}) {
 	}
 	fmt.Println(resp)
 	fmt.Println("==========================")
+}
+
+func (k *Kimi) serarch(query string) {
+
 }
 
 var (

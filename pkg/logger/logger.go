@@ -7,7 +7,8 @@ import (
 )
 
 func InitLogger(logPath string) *zap.Logger {
-	writeSyncer := getLogWriter(logPath)
+	filePath := logPath + "/access.log"
+	writeSyncer := getLogWriter(filePath)
 	encoder := getEncoder()
 	core := zapcore.NewCore(encoder, writeSyncer, zapcore.DebugLevel)
 	return zap.New(core, zap.AddCaller())

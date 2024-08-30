@@ -3,3 +3,4 @@ storage.json
 *-dev.yaml
 *.logs
 .venv/
+.idea

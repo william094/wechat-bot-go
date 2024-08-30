@@ -3,10 +3,9 @@ package message
 import (
 	"fmt"
 	"strings"
-	"wehcat-bot-go/internal/ai"
-	"wehcat-bot-go/internal/ai/kimi"
 	"wehcat-bot-go/internal/config"
 	"wehcat-bot-go/internal/data"
+	"wehcat-bot-go/internal/model"
 
 	"github.com/eatmoreapple/openwechat"
 	"go.uber.org/zap"
@@ -25,6 +24,7 @@ func (p *GroupMsgHandler) ReceiveHandler(msg *openwechat.Message) error {
 	if !msg.IsAt() {
 		return nil
 	}
+	p.log.Sugar().Infof("收到群聊消息---消息类型：%s,消息子类型：%s,消息发送者：%s", msg.MsgType, msg.SubMsgType, msg.Content)
 	return p.ReplyHandler(msg)
 }
 
@@ -65,7 +65,7 @@ func (p *GroupMsgHandler) ReplyHandler(msg *openwechat.Message) error {
 	return nil
 }
 
-func (p *GroupMsgHandler) GetContext(msg *openwechat.Message) (msgs []ai.Message) {
+func (p *GroupMsgHandler) GetContext(msg *openwechat.Message) (msgs []model.Message) {
 	sender, _ := msg.Sender()
 	group := openwechat.Group{User: sender}
 	if sender == nil {
@@ -77,13 +77,14 @@ func (p *GroupMsgHandler) GetContext(msg *openwechat.Message) (msgs []ai.Message
 	msgs, err := data.GetUserContext(fmt.Sprintf("%s-%d", sender.ID(), group.ChatRoomId))
 	if err != nil || msgs == nil {
 		p.log.Sugar().Errorf("get user context error \n", err)
-		msgs = make([]ai.Message, 0)
+		msgs = make([]model.Message, 0)
 	}
-	msgs = append(msgs, ai.Message{Role: "user", Content: content})
+	msgs = append(msgs, model.Message{Role: "user", Content: content})
 	p.log.Sugar().Infof("群-%d;用户%s;上下文信息：%v \n", sender.ID(), group.ChatRoomId, msgs)
 	return
 }
 
-func (p *GroupMsgHandler) GetModelSV() ai.AiHandler {
-	return &kimi.Kimi{ApiKey: p.conf.Kimi.ApiKey, BaseUrl: p.conf.Kimi.BaseUrl}
+func (p *GroupMsgHandler) GetModelSV() model.AiHandler {
+	// return &kimi.Kimi{ApiKey: p.conf.Kimi.ApiKey, BaseUrl: p.conf.Kimi.BaseUrl}
+	return &p.conf.Doubao
 }

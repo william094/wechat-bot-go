@@ -76,6 +76,7 @@ def search_impl(query: str) -> List[Dict[str, Any]]:
     with DDGS() as ddgs:
        r=  ddgs.text(query, region='cn-zh', max_results=2)
     #r = httpx.get("https://api.bing.com/qsonhs.aspx", params={"q": query})
+    pprint(r)
     return r
  
  
@@ -112,6 +113,8 @@ messages = [
     {"role": "user", "content": "上海静安今天天气怎么样"}  # 在提问中要求 Kimi 大模型联网搜索
 ]
  
+def serach123():
+    search_impl("上海静安今天天气怎么样") 
 
 finish_reason = None
 
