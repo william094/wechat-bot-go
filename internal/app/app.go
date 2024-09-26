@@ -16,9 +16,9 @@ var (
 	Log  *zap.Logger
 )
 
-func init() {
+func InitConfig(confPaht string) {
 	// 记载配置文件
-	application.LoadConfig("../configs", "config-dev", &Conf)
+	application.LoadConfig(confPaht, &Conf)
 	// 初始化 logger
 	Log = logger.InitLogger(Conf.LogPath)
 	// 初始化redis

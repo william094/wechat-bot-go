@@ -1,11 +1,22 @@
-package bot
+package cmd
 
 import (
 	"wehcat-bot-go/internal/app"
 	"wehcat-bot-go/internal/wechat/handlers"
 
 	"github.com/eatmoreapple/openwechat"
+	"github.com/spf13/cobra"
 )
+
+var runCmd = &cobra.Command{
+	Use:   "run",
+	Short: "run wechat bot ",
+	Long:  `run wechat bot `,
+	Run: func(cmd *cobra.Command, args []string) {
+		app.InitConfig(cfgFile)
+		Run()
+	},
+}
 
 func Run() {
 	// 桌面模式
@@ -28,4 +39,8 @@ func Run() {
 	}
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	bot.Block()
+}
+
+func init() {
+	RootCmd.AddCommand(runCmd)
 }

@@ -1,0 +1,15 @@
+redis:
+  addr: 123.60.131.144:6379
+  pwd:  
+  db: 0
+  size: 5
+  timeout: 15
+kimi:
+  apiKey: sk-MyQJaP6HFPl50uk8d976frV9bNKHrsUAbFLq4C0RBVEMFiD6
+  baseUrl: https://api.moonshot.cn
+doubao:
+  apiKey: 762bd9d3-3f55-4d3d-a931-1891b1a7a419
+  botId: bot-20240829154002-ggsnc    
+logPath: /Users/zhr/workspaces/logs
+
+

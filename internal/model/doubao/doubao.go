@@ -36,7 +36,6 @@ func (d *Doubao) GetAskClient() {
 }
 
 func (d *Doubao) TextHandler(ctx context.Context, msgs []ai.Message) (msg ai.Message, err error) {
-	d.GetAskClient()
 	req := model.BotChatCompletionRequest{
 		BotId:    d.BotId,
 		Messages: []*model.ChatCompletionMessage{},

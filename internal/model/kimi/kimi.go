@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	ai "wehcat-bot-go/internal/model"
 
 	"github.com/go-resty/resty/v2"
@@ -51,10 +50,15 @@ type KimiMsg struct {
 }
 
 type ToolCall struct {
-	Index int64             `json:"index"`
-	ID    string            `json:"id"`
-	Type  string            `json:"type"`
-	Func  map[string]string `json:"function"`
+	Index int64    `json:"index"`
+	ID    string   `json:"id"`
+	Type  string   `json:"type"`
+	Func  Function `json:"function"`
+}
+
+type Function struct {
+	Name      string `json:"name"`
+	Arguments string `json:"arguments"`
 }
 
 func (k *Kimi) TextHandler(ctx context.Context, msgs []ai.Message) (msg ai.Message, err error) {
@@ -96,38 +100,42 @@ func (k *Kimi) ToolCalls(ctx context.Context, msgs []map[string]interface{}) {
 		SetHeader("Authorization", fmt.Sprintf("Bearer %s", k.ApiKey)).
 		SetBody(body).SetResult(results).
 		Post(fmt.Sprintf("%s/v1/chat/completions", k.BaseUrl))
-	if err != nil {
-		return
-	}
-	bytes, _ := json.Marshal(body)
-	fmt.Println(string(bytes))
 	fmt.Println(resp)
 	fmt.Println("==========================")
+	if err != nil {
+		panic(err)
+	}
+
 	if len(results.Choices) == 0 {
 		return
 	}
 	if results.Choices[0].FinishReason == "tool_calls" {
-		//if results.Choices[0].Message.Content != "" {
-		msgs = append(msgs, map[string]interface{}{
-			"role":    results.Choices[0].Message.Role,
-			"content": results.Choices[0].Message.Content,
-		})
-		//}
+		if results.Choices[0].Message.Content != "" {
+			msgs = append(msgs, map[string]interface{}{
+				"role":    results.Choices[0].Message.Role,
+				"content": results.Choices[0].Message.Content,
+			})
+		}
+		func_name := results.Choices[0].Message.ToolCalls[0].Func.Name
+		call_arguments := make(map[string]string, 0)
+		err = json.Unmarshal([]byte(results.Choices[0].Message.ToolCalls[0].Func.Arguments), &call_arguments)
+		var tool_result []byte
+		if func_name == "search" {
+			tool_result = k.search(call_arguments["query"])
+		} else {
+			tool_result = k.get(call_arguments["url"])
+		}
 		msgs = append(msgs, map[string]interface{}{
 			"role":         "tool",
-			"content":      strings.Replace(strings.Replace(results.Choices[0].Message.ToolCalls[0].Func["arguments"], "\n", "", -1), "\\", "", -1),
+			"content":      string(tool_result),
 			"tool_call_id": results.Choices[0].Message.ToolCalls[0].ID,
-			"name":         results.Choices[0].Message.ToolCalls[0].Func["name"],
+			"name":         results.Choices[0].Message.ToolCalls[0].Func.Name,
 		})
 
 		k.ToolCalls(ctx, msgs)
 	}
 	fmt.Println(resp)
 	fmt.Println("==========================")
-}
-
-func (k *Kimi) serarch(query string) {
-
 }
 
 var (
@@ -167,3 +175,29 @@ var (
 		},
 	}
 )
+
+type SerachResult struct {
+	Results []struct {
+		Body  string `json:"body"`
+		Href  string `json:"href"`
+		Title string `json:"title"`
+	}
+}
+
+func (k *Kimi) search(query string) []byte {
+	resp, err := resty.New().R().
+		SetQueryParams(map[string]string{"q": query, "max_resluts": "1"}).
+		Get("http://localhost:8000/search")
+	if err != nil {
+		panic(err)
+	}
+	return resp.Body()
+}
+
+func (k *Kimi) get(url string) []byte {
+	resp, err := resty.New().R().Get(url)
+	if err != nil {
+		panic(err)
+	}
+	return resp.Body()
+}

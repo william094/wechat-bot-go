@@ -3,18 +3,13 @@ from typing import *
 import json
 import httpx
 import time
-
-from duckduckgo_search import DDGS
-from pprint import pprint 
+ 
 from openai import OpenAI
  
-
-
-
+ 
 client = OpenAI(
-    api_key="sk-MyQJaP6HFPl50uk8d976frV9bNKHrsUAbFLq4C0RBVEMFiD6", # 在这里将 MOONSHOT_API_KEY 替换为你从 Kimi 开放平台申请的 API Key
-    base_url="https://api.moonshot.cn/v1/",
-
+    api_key="sk-mk2nZkTzA76bTHPU6hnNMztjkzY8hrc9WXS9qzFgar38nCi9", # 在这里将 MOONSHOT_API_KEY 替换为你从 Kimi 开放平台申请的 API Key
+    base_url="https://api.moonshot.cn/v1",
 )
  
 tools = [
@@ -25,7 +20,7 @@ tools = [
 			"description": """ 
 				通过搜索引擎搜索互联网上的内容。
  
-				当你无法回答用户的问题时，或用户查询的是实时数据，或用户请求你进行联网搜索时，调用此工具。请从与用户的对话中提取用户想要搜索的内容作为 query 参数的值。
+				当你的知识无法回答用户提出的问题，或用户请求你进行联网搜索时，调用此工具。请从与用户的对话中提取用户想要搜索的内容作为 query 参数的值。
 				搜索结果包含网站的标题、网站的地址（URL）以及网站简介。
 			""", # 函数的介绍，在这里写上函数的具体作用以及使用场景，以便 Kimi 大模型能正确地选择使用哪些函数
 			"parameters": { # 使用 parameters 字段来定义函数接收的参数
@@ -73,11 +68,15 @@ def search_impl(query: str) -> List[Dict[str, Any]]:
  
     这里只是一个简单的示例，你可能需要编写一些鉴权、校验、解析的代码。
     """
-    with DDGS() as ddgs:
-       r=  ddgs.text(query, region='cn-zh', max_results=2)
-    #r = httpx.get("https://api.bing.com/qsonhs.aspx", params={"q": query})
-    pprint(r)
-    return r
+    r = httpx.get("http://localhost:8000/search", params={"q": query,"max_results":2})
+    if r.status_code == 200:    
+        try:
+            data = r.json()
+        except json.decoder.JSONDecodeError:
+            print("返回的内容不是有效的JSON格式")    
+    else:
+        print(f"请求失败，状态码：{r.status_code}")   
+    return data    
  
  
 def search(arguments: Dict[str, Any]) -> Any:
@@ -100,7 +99,9 @@ def crawl_impl(url: str) -> str:
 def crawl(arguments: dict) -> str:
     url = arguments["url"]
     content = crawl_impl(url)
+    time.sleep(60)
     return {"content": content}
+
  
 # 通过 tool_map 将每个工具名称及其对应的函数进行映射，以便在 Kimi 大模型返回 tool_calls 时能快速找到应该执行的函数
 tool_map = {
@@ -109,15 +110,12 @@ tool_map = {
 }
  
 messages = [
-    #{"role": "system","content": "你是 Kimi，由 Moonshot AI 提供的人工智能助手，你更擅长中文和英文的对话。你会为用户提供安全，有帮助，准确的回答。同时，你会拒绝一切涉及恐怖主义，种族歧视，黄色暴力等问题的回答。Moonshot AI 为专有名词，不可翻译成其他语言。"},
-    {"role": "user", "content": "上海静安今天天气怎么样"}  # 在提问中要求 Kimi 大模型联网搜索
+    {"role": "system",
+     "content": "你是 Kimi，由 Moonshot AI 提供的人工智能助手，你更擅长中文和英文的对话。你会为用户提供安全，有帮助，准确的回答。同时，你会拒绝一切涉及恐怖主义，种族歧视，黄色暴力等问题的回答。Moonshot AI 为专有名词，不可翻译成其他语言。"},
+    {"role": "user", "content": "上海今日天气怎么样"}  # 在提问中要求 Kimi 大模型联网搜索
 ]
  
-def serach123():
-    search_impl("上海静安今天天气怎么样") 
-
 finish_reason = None
-
  
 # 我们的基本流程是，带着用户的问题和 tools 向 Kimi 大模型提问，如果 Kimi 大模型返回了 finish_reason: tool_calls，则我们执行对应的 tool_calls，
 # 将执行结果以 role=tool 的 message 的形式重新提交给 Kimi 大模型，Kimi 大模型根据 tool_calls 结果进行下一步内容的生成：
@@ -128,14 +126,14 @@ finish_reason = None
 # 在这个过程中，只有当 finish_reason 为 stop 时，我们才会将结果返回给用户。
  
 while finish_reason is None or finish_reason == "tool_calls":
-   # time.sleep(30)
     completion = client.chat.completions.create(
-        model="moonshot-v1-8k",
+        model="moonshot-v1-32k",
         messages=messages,
         temperature=0.3,
         tools=tools,  # <-- 我们通过 tools 参数，将定义好的 tools 提交给 Kimi 大模型
     )
     choice = completion.choices[0]
+    print(choice)
     finish_reason = choice.finish_reason
     if finish_reason == "tool_calls": # <-- 判断当前返回内容是否包含 tool_calls
         messages.append(choice.message) # <-- 我们将 Kimi 大模型返回给我们的 assistant 消息也添加到上下文中，以便于下次请求时 Kimi 大模型能理解我们的诉求
@@ -144,7 +142,7 @@ while finish_reason is None or finish_reason == "tool_calls":
             tool_call_arguments = json.loads(tool_call.function.arguments) # <-- arguments 是序列化后的 JSON Object，我们需要使用 json.loads 反序列化一下
             tool_function = tool_map[tool_call_name] # <-- 通过 tool_map 快速找到需要执行哪个函数
             tool_result = tool_function(tool_call_arguments)
- 
+            print(f"tool_call_id:{tool_call.id},name:{tool_call_name},tool_results:{tool_result}")
             # 使用函数执行结果构造一个 role=tool 的 message，以此来向模型展示工具调用的结果；
             # 注意，我们需要在 message 中提供 tool_call_id 和 name 字段，以便 Kimi 大模型
             # 能正确匹配到对应的 tool_call。
